@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Options & Derivatives Masterclass — Quant Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   THEME VARIABLES & QUANT RESET
+════════════════════════════════════════ */
+:root[data-theme="dark"] {
+  --bg: #05020a;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #150824 0%, #05020a 80%);
+  --surface: rgba(17, 10, 28, 0.6);
+  --surface-blur: blur(16px);
+  --card: rgba(22, 13, 36, 0.6);
+  --card-hover: rgba(33, 20, 50, 0.8);
+  --border: rgba(45, 30, 70, 0.8);
+  --border-hover: rgba(213, 0, 249, 0.5);
+  
+  --opt-magenta: #d500f9;
+  --opt-purple: #651fff;
+  --opt-pink: #ff4081;
+  --green: #00e676;
+  --red: #ff1744;
+  --amber: #ff9100;
+  --blue: #00b0ff;
+  
+  --text-main: #e8e2f0;
+  --text-muted: #9b8ba4;
+  --white: #ffffff;
+  
+  --glow-magenta: 0 0 30px rgba(213, 0, 249, 0.3), inset 0 0 20px rgba(213, 0, 249, 0.05);
+  --glow-purple: 0 0 30px rgba(101, 31, 255, 0.3);
+  --glow-pink: 0 0 30px rgba(255, 64, 129, 0.3);
+  
+  --grid-color: rgba(213, 0, 249, 0.03);
+}
+
+:root[data-theme="light"] {
+  --bg: #faf8fc;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #f0eef6 0%, #faf8fc 80%);
+  --surface: rgba(255, 255, 255, 0.7);
+  --surface-blur: blur(16px);
+  --card: rgba(255, 255, 255, 0.8);
+  --card-hover: rgba(245, 241, 249, 0.9);
+  --border: rgba(215, 205, 225, 0.8);
+  --border-hover: rgba(213, 0, 249, 0.5);
+  
+  --opt-magenta: #aa00ff;
+  --opt-purple: #6200ea;
+  --opt-pink: #c51162;
+  --green: #00c853;
+  --red: #d50000;
+  --amber: #ff6d00;
+  --blue: #0091ea;
+  
+  --text-main: #1e152a;
+  --text-muted: #574569;
+  --white: #0a0510;
+  
+  --glow-magenta: 0 10px 40px rgba(170, 0, 255, 0.2);
+  --glow-purple: 0 10px 40px rgba(98, 0, 234, 0.2);
+  --glow-pink: 0 10px 40px rgba(197, 17, 98, 0.2);
+  
+  --grid-color: rgba(170, 0, 255, 0.04);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+  background: var(--bg-gradient); color: var(--text-main);
+  font-family: 'Outfit', sans-serif; overflow-x: hidden;
+  transition: background 0.5s ease, color 0.5s ease;
+  min-height: 100vh;
+}
+
+/* Elite Background Grids */
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: 
+    linear-gradient(var(--grid-color) 1px, transparent 1px), 
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 80px 80px; pointer-events: none; z-index: -1;
+}
+
+.progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--opt-purple), var(--opt-magenta)); z-index: 10000; width: 0%; box-shadow: var(--glow-magenta); transition: width 0.1s; }
+.ambient-glow { position: absolute; width: 1200px; height: 1200px; background: radial-gradient(circle, rgba(213,0,249,0.05) 0%, transparent 50%); top: 40%; left: 60%; transform: translate(-50%, -50%); pointer-events: none; z-index: -2; filter: blur(80px); animation: pulseGlow 15s infinite alternate ease-in-out; }
+@keyframes pulseGlow { 0% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.7) rotate(0deg); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(15deg); } }
+
+/* Precision Cursor */
+@media (hover: hover) {
+  body { cursor: none; }
+  .cursor-dot { position: fixed; width: 6px; height: 6px; background: var(--opt-magenta); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); transition: width 0.1s, height 0.1s; box-shadow: var(--glow-magenta); }
+  .cursor-ring { position: fixed; width: 44px; height: 44px; border: 1px solid var(--opt-magenta); border-radius: 50%; pointer-events: none; z-index: 9998; opacity: 0.4; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s, transform 0.05s ease-out; backdrop-filter: invert(10%); }
+}
+
+/* ════════════════════════════════════════
+   GLASSMORPHISM LAYOUT
+════════════════════════════════════════ */
+.layout-wrapper { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 300px; background: var(--surface); backdrop-filter: var(--surface-blur);
+  border-right: 1px solid var(--border); height: 100vh; position: sticky; top: 0;
+  padding: 40px 0; display: flex; flex-direction: column; z-index: 100;
+}
+.brand {
+  padding: 0 40px 30px; border-bottom: 1px solid var(--border);
+  font-family: 'Bebas Neue', sans-serif; font-size: 38px; color: var(--white);
+  letter-spacing: 2px; text-shadow: var(--glow-magenta);
+}
+.brand span { color: var(--opt-magenta); }
+
+.nav-links { padding: 30px 0; overflow-y: auto; flex-grow: 1; }
+.nav-link {
+  display: flex; align-items: center; padding: 14px 40px; color: var(--text-muted);
+  text-decoration: none; font-size: 14px; font-weight: 500; border-left: 4px solid transparent; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.nav-link:hover, .nav-link.active { color: var(--opt-magenta); background: linear-gradient(90deg, rgba(213, 0, 249, 0.08) 0%, transparent 100%); border-left-color: var(--opt-magenta); padding-left: 45px; }
+.nav-link-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-right: 15px; opacity: 0.5; color: var(--white); }
+
+.sidebar-footer { padding: 30px 40px; border-top: 1px solid var(--border); }
+.theme-btn {
+  width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--card);
+  color: var(--text-main); font-family: 'JetBrains Mono', monospace; font-size: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s;
+  backdrop-filter: var(--surface-blur);
+}
+.theme-btn:hover { border-color: var(--opt-magenta); box-shadow: var(--glow-magenta); color: var(--opt-magenta); transform: translateY(-2px); }
+
+.main-content { flex-grow: 1; width: calc(100% - 300px); }
+
+/* Mobile Header */
+.mobile-header {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; background: var(--surface);
+  backdrop-filter: var(--surface-blur); padding: 20px 24px; border-bottom: 1px solid var(--border); z-index: 1000;
+}
+.menu-toggle { background: none; border: none; color: var(--text-main); font-size: 28px; cursor: pointer; }
+
+/* ════════════════════════════════════════
+   TYPOGRAPHY & HIGH-END COMPONENTS
+════════════════════════════════════════ */
+.hero { min-height: 100vh; padding: 100px; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
+.live-badge {
+  display: inline-flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--opt-magenta); margin-bottom: 30px;
+  padding: 8px 16px; border: 1px solid rgba(213, 0, 249, 0.3); border-radius: 30px; background: rgba(213, 0, 249, 0.05);
+  box-shadow: inset 0 0 20px rgba(213, 0, 249, 0.05);
+}
+.live-dot { width: 8px; height: 8px; background: var(--opt-magenta); border-radius: 50%; animation: pulse 1.5s infinite; box-shadow: 0 0 10px var(--opt-magenta); }
+.hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(60px, 8vw, 130px); line-height: 0.85; color: var(--white); margin-bottom: 30px; letter-spacing: 1px; }
+.hero h1 span { color: transparent; -webkit-text-stroke: 1px var(--opt-magenta); }
+[data-theme="light"] .hero h1 span { -webkit-text-stroke: 2px var(--opt-magenta); }
+.hero p { font-size: clamp(18px, 2vw, 22px); color: var(--text-muted); max-width: 800px; line-height: 1.7; font-weight: 300; }
+
+.chapter { padding: 120px 100px; border-top: 1px solid var(--border); position: relative; }
+.ch-meta { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--opt-magenta); letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
+.ch-meta::before { content: ''; width: 40px; height: 2px; background: var(--opt-magenta); box-shadow: var(--glow-magenta); }
+.ch-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(45px, 6vw, 85px); color: var(--white); line-height: 0.9; margin-bottom: 30px; letter-spacing: 1px; }
+.ch-title em { font-style: italic; color: transparent; -webkit-text-stroke: 1px var(--opt-purple); }
+[data-theme="light"] .ch-title em { -webkit-text-stroke: 2px var(--opt-purple); }
+.ch-desc { font-size: 20px; color: var(--text-muted); max-width: 900px; line-height: 1.8; margin-bottom: 70px; font-weight: 300; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; }
+.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 40px; }
+
+/* Elite Cards with Glassmorphism */
+.card {
+  background: var(--card); backdrop-filter: var(--surface-blur); border: 1px solid var(--border);
+  border-radius: 16px; padding: 40px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative; overflow: hidden;
+}
+.card::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%); pointer-events: none;
+}
+.card:hover { transform: translateY(-10px); border-color: var(--border-hover); box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+.card-indicator { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 16px; font-weight: 600; }
+.c-magenta { color: var(--opt-magenta); } .c-purple { color: var(--opt-purple); } .c-pink { color: var(--opt-pink); } .c-green { color: var(--green); } .c-red { color: var(--red); } .c-amber { color: var(--amber); } .c-blue { color: var(--blue); }
+.card h3 { font-size: 26px; color: var(--white); margin-bottom: 16px; font-weight: 600; line-height: 1.3; }
+.card p { font-size: 16px; color: var(--text-muted); line-height: 1.7; }
+
+/* Deep Dive Callouts */
+.callout {
+  padding: 30px; border-radius: 0 16px 16px 0; margin: 40px 0;
+  border-left: 4px solid var(--opt-magenta); background: var(--card); backdrop-filter: var(--surface-blur);
+  box-shadow: 20px 20px 60px rgba(0,0,0,0.1); position: relative;
+}
+.callout::after { content: 'QUANT NOTE'; position: absolute; top: -10px; right: 20px; background: var(--bg); padding: 4px 12px; border: 1px solid var(--border); border-radius: 20px; font-family: 'JetBrains Mono'; font-size: 10px; color: var(--text-muted); letter-spacing: 2px; }
+.callout.purple { border-left-color: var(--opt-purple); } .callout.pink { border-left-color: var(--opt-pink); } .callout.red { border-left-color: var(--red); }
+.callout strong { display: block; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 12px; }
+
+/* Institutional SVG Utilities */
+.svg-container {
+  background: var(--card-hover); border: 1px solid var(--border); border-radius: 16px;
+  padding: 40px; margin-bottom: 40px; position: relative; overflow: hidden;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
+}
+.svg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-main); letter-spacing: 0.2em; font-weight: 600; }
+.badge { padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; }
+.bg-magenta { background: rgba(213, 0, 249, 0.1); color: var(--opt-magenta); border: 1px solid rgba(213, 0, 249, 0.3); }
+.bg-purple { background: rgba(101, 31, 255, 0.1); color: var(--opt-purple); border: 1px solid rgba(101, 31, 255, 0.3); }
+.bg-pink { background: rgba(255, 64, 129, 0.1); color: var(--opt-pink); border: 1px solid rgba(255, 64, 129, 0.3); }
+.bg-red { background: rgba(255,51,85,0.1); color: var(--red); border: 1px solid rgba(255,51,85,0.3); }
+.bg-green { background: rgba(0, 230, 118, 0.1); color: var(--green); border: 1px solid rgba(0, 230, 118, 0.3); }
+
+/* Advanced Animations */
+.reveal { opacity: 0; transform: translateY(50px); transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+@keyframes pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--opt-magenta); } 50% { opacity: 0.4; box-shadow: none; } }
+@keyframes decayLine { to { stroke-dashoffset: -400; } }
+
+/* Master Screener (Checklist) */
+.checklist-wrapper { background: var(--card); backdrop-filter: var(--surface-blur); border: 1px solid var(--opt-magenta); border-radius: 20px; overflow: hidden; box-shadow: var(--glow-magenta); }
+.chk-header { background: linear-gradient(90deg, rgba(213, 0, 249, 0.1) 0%, transparent 100%); padding: 40px 50px; border-bottom: 1px solid var(--border); }
+.chk-body { padding: 50px; display: grid; grid-template-columns: 1fr 1fr; gap: 50px; }
+.chk-title { font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 24px; color: var(--opt-magenta); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.custom-chk { display: none; }
+.chk-label { display: flex; align-items: flex-start; gap: 16px; font-size: 16px; color: var(--text-muted); cursor: pointer; transition: all 0.3s; padding: 12px 16px; border-radius: 10px; border: 1px solid transparent; line-height: 1.5; }
+.chk-label:hover { color: var(--text-main); background: var(--card-hover); border-color: var(--border); transform: translateX(5px); }
+.chk-box-ui { width: 24px; height: 24px; border: 2px solid var(--text-muted); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); margin-top: 2px; background: var(--bg); }
+.custom-chk:checked + .chk-label { color: var(--text-muted); opacity: 0.5; text-decoration: line-through; }
+.custom-chk:checked + .chk-label .chk-box-ui { background: var(--opt-magenta); border-color: var(--opt-magenta); box-shadow: var(--glow-magenta); transform: scale(1.15); }
+.custom-chk:checked + .chk-label .chk-box-ui::after { content: '✓'; color: var(--bg); font-weight: 900; font-size: 16px; }
+
+/* Payoff Diagram Helpers */
+.axis-line { stroke: var(--text-muted); stroke-width: 1; opacity: 0.5; }
+.profit-area { fill: var(--green); opacity: 0.15; }
+.loss-area { fill: var(--red); opacity: 0.15; }
+.payoff-line { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.payoff-blue { stroke: var(--blue); }
+.payoff-magenta { stroke: var(--opt-magenta); }
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+  .hero h1 { font-size: clamp(50px, 6vw, 90px); }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .chk-body { grid-template-columns: 1fr; }
+}
+@media (max-width: 1024px) {
+  .sidebar { width: 260px; } .main-content { width: calc(100% - 260px); }
+  .hero, .chapter { padding: 80px 40px; }
+}
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); position: fixed; box-shadow: 20px 0 50px rgba(0,0,0,0.8); z-index: 1001; }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { width: 100%; margin-top: 70px; } .mobile-header { display: flex; justify-content: space-between; }
+  .hero, .chapter { padding: 60px 20px; }
+  .chk-header { padding: 30px 20px; } .chk-body { padding: 30px 20px; gap: 30px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<div class="layout-wrapper">
+  
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <div class="brand" style="padding:0; border:none; font-size:28px;">QUANT<span>.PRO</span></div>
+    <button class="menu-toggle" id="menuToggle">☰</button>
+  </header>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">QUANT<span>.PRO</span></div>
+    <nav class="nav-links">
+      <a href="#hero" class="nav-link active"><span class="nav-link-num">00</span> The 4th Dimension</a>
+      <a href="#ch1" class="nav-link"><span class="nav-link-num">01</span> Calls & Puts (The Trap)</a>
+      <a href="#ch2" class="nav-link"><span class="nav-link-num">02</span> The Greeks (4D Math)</a>
+      <a href="#ch3" class="nav-link"><span class="nav-link-num">03</span> Volatility & IV Crush</a>
+      <a href="#ch4" class="nav-link"><span class="nav-link-num">04</span> Advanced Strategies</a>
+      <a href="#ch5" class="nav-link"><span class="nav-link-num">05</span> The Expected Move</a>
+      <a href="#ch6" class="nav-link"><span class="nav-link-num">06</span> Volatility Skew</a>
+      <a href="#ch7" class="nav-link"><span class="nav-link-num">07</span> The Gamma Squeeze</a>
+      <a href="#ch8" class="nav-link"><span class="nav-link-num">08</span> Options Pre-Flight</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="theme-btn" id="themeToggle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        Toggle Theme
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- HERO -->
+    <section class="hero" id="hero">
+      <div class="ambient-glow"></div>
+      <div class="live-badge"><span class="live-dot"></span> Institutional Derivatives Framework</div>
+      <h1>TRADE THE<br><span>4TH DIMENSION</span><br>OF MARKETS</h1>
+      <p>Stocks are 1-Dimensional (up or down). Options are 4-Dimensional: Direction, Time, Volatility, and Acceleration. Welcome to the realm of Market Makers, Quants, and advanced mathematical leverage.</p>
+    </section>
+
+    <!-- CHAPTER 1: CALLS & PUTS -->
+    <section class="chapter" id="ch1">
+      <div class="ch-meta">Chapter 01</div>
+      <h2 class="ch-title">THE RETAIL <em>TRAP</em><br>(CALLS & PUTS)</h2>
+      <p class="ch-desc">Most retail traders use options as leveraged lottery tickets. They buy Out-Of-The-Money (OTM) Calls hoping for a massive spike. They don't realize they are fighting a mathematical certainty: Time Decay.</p>
+
+      <div class="svg-container reveal">
+        <div class="svg-header"><span>LONG CALL OPTION PAYOFF</span><span class="badge bg-magenta">BASIC BUILDING BLOCK</span></div>
+        <svg viewBox="0 0 800 300" style="width:100%; height:auto;">
+          <!-- Axes -->
+          <line x1="100" y1="200" x2="700" y2="200" class="axis-line"/> <!-- Zero Profit Line -->
+          <line x1="300" y1="50" x2="300" y2="250" class="axis-line"/> <!-- Current Price / Strike -->
+          
+          <text x="710" y="205" fill="var(--text-muted)" font-family="monospace" font-size="12">Stock Price →</text>
+          <text x="30" y="150" fill="var(--text-muted)" font-family="monospace" font-size="12" transform="rotate(-90 30,150)" text-anchor="middle">Profit / Loss</text>
+
+          <!-- Profit/Loss Areas -->
+          <polygon points="400,200 700,200 700,50 400,50" class="profit-area"/>
+          <polygon points="100,200 400,200 400,250 100,250" class="loss-area"/>
+
+          <!-- Long Call Payoff Line -->
+          <!-- Max loss is the premium paid. Stays flat until Strike, then goes up -->
+          <path d="M100,250 L300,250 L700,50" class="payoff-line payoff-magenta"/>
+
+          <!-- Key Points -->
+          <circle cx="300" cy="250" r="5" fill="var(--opt-magenta)"/>
+          <text x="300" y="270" fill="var(--text-main)" font-family="monospace" font-size="12" text-anchor="middle">Strike Price</text>
+
+          <circle cx="400" cy="200" r="5" fill="var(--green)"/>
+          <text x="400" y="220" fill="var(--green)" font-family="monospace" font-size="12" text-anchor="middle">Breakeven</text>
+
+          <text x="200" y="235" fill="var(--red)" font-family="monospace" font-size="12" text-anchor="middle">Max Risk = Premium Paid</text>
+          <text x="600" y="100" fill="var(--green)" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle">Infinite Upside</text>
+        </svg>
+      </div>
+
+      <div class="grid-2 reveal">
+        <div class="card" style="border-top: 4px solid var(--green);">
+          <div class="card-indicator c-green">Intrinsic Value</div>
+          <h3>The Real Worth</h3>
+          <p>An option only has "Intrinsic Value" if it is In-The-Money (ITM). If a stock is at $110, and you hold a $100 Call, it has $10 of intrinsic value. At expiration, any option that is Out-Of-The-Money (OTM) expires absolutely worthless ($0).</p>
+        </div>
+        <div class="card" style="border-top: 4px solid var(--red);">
+          <div class="card-indicator c-red">Extrinsic Value (Premium)</div>
+          <h3>The Hope Tax</h3>
+          <p>When you buy an OTM option, you are paying 100% Extrinsic Value. You are paying a premium for the *hope* that the stock reaches your strike before time runs out. Every single day you hold it, this "hope" loses value. This is how Market Makers bleed retail dry.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER 2: THE GREEKS -->
+    <section class="chapter" id="ch2" style="background: rgba(213, 0, 249, 0.02);">
+      <div class="ch-meta">Chapter 02</div>
+      <h2 class="ch-title">THE GREEKS<br><em>(4D MATHEMATICS)</em></h2>
+      <p class="ch-desc">Options pricing is governed by the Black-Scholes model. "The Greeks" are the variables that tell you exactly how an option's price will react to changes in the market. Memorize these.</p>
+
+      <div class="grid-2 reveal">
+        <!-- Delta -->
+        <div class="card" style="border-left: 4px solid var(--blue);">
+          <div class="card-indicator c-blue">Δ DELTA (Direction & Speed)</div>
+          <h3 style="color:var(--white);">The Hedge Ratio</h3>
+          <p>Delta measures how much the option price moves for every $1 move in the underlying stock. A Delta of 0.50 means if the stock goes up $1, the option goes up $0.50.<br><br><strong>Quant Secret:</strong> Delta is also a proxy for probability. A 0.20 Delta option has roughly a 20% chance of expiring In-The-Money.</p>
+        </div>
+
+        <!-- Gamma -->
+        <div class="card" style="border-left: 4px solid var(--opt-magenta);">
+          <div class="card-indicator c-magenta">Γ GAMMA (Acceleration)</div>
+          <h3 style="color:var(--white);">The Delta Engine</h3>
+          <p>Gamma is the rate of change of Delta. It measures how fast Delta increases as the stock moves in your favor. If Delta is speed, Gamma is acceleration. Gamma is highest for At-The-Money (ATM) options that are close to expiration.</p>
+        </div>
+
+        <!-- Theta -->
+        <div class="card" style="border-left: 4px solid var(--red);">
+          <div class="card-indicator c-red">Θ THETA (Time Decay)</div>
+          <h3 style="color:var(--white);">The Silent Killer</h3>
+          <p>Theta is how much value the option loses *every single day* just because time has passed. Theta is the enemy of option buyers, and the best friend of option sellers (writers). Time decay accelerates massively in the final 30 days before expiration.</p>
+        </div>
+
+        <!-- Vega -->
+        <div class="card" style="border-left: 4px solid var(--amber);">
+          <div class="card-indicator c-amber">ν VEGA (Volatility)</div>
+          <h3 style="color:var(--white);">The Wildcard</h3>
+          <p>Vega measures how much the option price changes for a 1% change in Implied Volatility (IV). When markets panic, IV spikes, and Vega causes the price of *all* options (both Calls and Puts) to explode, regardless of stock direction.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER 3: IV CRUSH -->
+    <section class="chapter" id="ch3" style="background: rgba(255, 145, 0, 0.02);">
+      <div class="ch-meta">Chapter 03</div>
+      <h2 class="ch-title">VOLATILITY &<br><em>THE "IV CRUSH"</em></h2>
+      <p class="ch-desc">Have you ever bought a Call option right before Earnings, the stock went UP, but you still lost money? You fell victim to the IV Crush. Volatility is mean-reverting.</p>
+
+      <div class="svg-container reveal">
+        <div class="svg-header"><span>THE IV CRUSH PHENOMENON</span><span class="badge bg-amber">VEGA COLLAPSE</span></div>
+        <svg viewBox="0 0 800 300" style="width:100%; height:auto;">
+          <!-- Axes -->
+          <line x1="50" y1="250" x2="750" y2="250" class="axis-line"/> 
+          
+          <!-- X Axis Labels -->
+          <text x="150" y="270" fill="var(--text-muted)" font-family="monospace" font-size="12" text-anchor="middle">2 Weeks Prior</text>
+          <text x="400" y="270" fill="var(--amber)" font-family="monospace" font-size="12" text-anchor="middle">EARNINGS EVENT</text>
+          <text x="650" y="270" fill="var(--text-muted)" font-family="monospace" font-size="12" text-anchor="middle">Day After</text>
+
+          <!-- Implied Volatility Line -->
+          <path d="M50,200 Q200,200 380,50 L400,50 L420,200 Q600,220 750,220" fill="none" stroke="var(--amber)" stroke-width="4"/>
+          
+          <!-- Event Divider -->
+          <line x1="400" y1="30" x2="400" y2="250" stroke="var(--red)" stroke-dasharray="8,4" stroke-width="2"/>
+
+          <!-- Annotations -->
+          <text x="250" y="100" fill="var(--amber)" font-family="monospace" font-weight="bold" font-size="14">Uncertainty Builds (IV Expands)</text>
+          <text x="250" y="120" fill="var(--text-main)" font-size="12">Option premiums become extremely expensive.</text>
+
+          <circle cx="410" cy="125" r="5" fill="var(--red)"/>
+          <text x="430" y="130" fill="var(--red)" font-family="monospace" font-weight="bold" font-size="16">IV CRUSH</text>
+          <text x="430" y="150" fill="var(--text-main)" font-size="12">Uncertainty is removed.</text>
+          <text x="430" y="165" fill="var(--text-main)" font-size="12">Premium vanishes instantly.</text>
+        </svg>
+      </div>
+
+      <div class="callout amber reveal">
+        <strong class="c-amber">The Institutional Playbook</strong>
+        Retail traders *buy* options before earnings, hoping for a massive directional move. Institutional Quants *sell* options (Iron Condors or Strangles) before earnings. They know that once the event passes, Implied Volatility will collapse instantly, sucking the Extrinsic Value out of the options. They buy them back the next morning for pennies.
+      </div>
+    </section>
+
+    <!-- CHAPTER 4: ADVANCED STRATEGIES -->
+    <section class="chapter" id="ch4">
+      <div class="ch-meta">Chapter 04</div>
+      <h2 class="ch-title">ADVANCED<br><em>STRATEGY ARCHITECTURE</em></h2>
+      <p class="ch-desc">Professionals rarely buy naked single-leg options. They combine legs (buy and sell simultaneously) to build structural payoffs that neutralize unwanted Greeks (like Theta) and define exact risk parameters.</p>
+
+      <div class="grid-2 reveal">
+        
+        <!-- Credit Spread -->
+        <div class="card">
+          <div class="svg-container" style="border:none; padding:0; background:transparent; margin-bottom: 20px; box-shadow:none;">
+            <svg viewBox="0 0 360 160" style="width:100%; height:120px;">
+              <line x1="20" y1="80" x2="340" y2="80" class="axis-line"/>
+              <polygon points="180,80 340,80 340,40 180,40" class="profit-area"/>
+              <polygon points="20,120 120,120 120,80 20,80" class="loss-area"/>
+              <path d="M20,120 L120,120 L180,40 L340,40" class="payoff-line payoff-blue"/>
+              <text x="260" y="30" fill="var(--green)" font-size="10" font-family="monospace">Max Profit (Premium Collected)</text>
+              <text x="70" y="140" fill="var(--red)" font-size="10" font-family="monospace">Defined Max Loss</text>
+            </svg>
+          </div>
+          <div class="card-indicator c-blue">Direction + Income</div>
+          <h3 style="font-size:20px;">Bull Put Credit Spread</h3>
+          <p style="font-size:14px;">Sell a Put at a higher strike, Buy a Put at a lower strike for protection. You collect a net credit. You win if the stock goes up, stays flat, or even drops slightly. You have theta (time) working *for* you. Your risk is strictly capped.</p>
+        </div>
+
+        <!-- Iron Condor -->
+        <div class="card">
+          <div class="svg-container" style="border:none; padding:0; background:transparent; margin-bottom: 20px; box-shadow:none;">
+             <svg viewBox="0 0 360 160" style="width:100%; height:120px;">
+              <line x1="20" y1="80" x2="340" y2="80" class="axis-line"/>
+              <polygon points="120,80 240,80 240,40 120,40" class="profit-area"/>
+              <polygon points="20,120 80,120 80,80 20,80" class="loss-area"/>
+              <polygon points="280,120 340,120 340,80 280,80" class="loss-area"/>
+              <path d="M20,120 L80,120 L120,40 L240,40 L280,120 L340,120" class="payoff-line payoff-magenta"/>
+              <text x="180" y="30" fill="var(--green)" font-size="10" font-family="monospace" text-anchor="middle">Profit Zone (The Body)</text>
+              <text x="50" y="140" fill="var(--red)" font-size="10" font-family="monospace" text-anchor="middle">Max Loss (Wings)</text>
+            </svg>
+          </div>
+          <div class="card-indicator c-magenta">Range Bound / IV Play</div>
+          <h3 style="font-size:20px;">The Iron Condor</h3>
+          <p style="font-size:14px;">Sell a Call Spread above the current price, and sell a Put Spread below it. You create a "cage". You win if the stock stays inside the cage by expiration. Perfect for high-IV environments (Earnings) where you expect volatility to crush.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CHAPTER 5: THE EXPECTED MOVE -->
+    <section class="chapter" id="ch5" style="background: rgba(0, 176, 255, 0.02);">
+      <div class="ch-meta">Chapter 05</div>
+      <h2 class="ch-title">PRICING THE FUTURE<br><em>(THE EXPECTED MOVE)</em></h2>
+      <p class="ch-desc">Options are not gambling; they are a probability matrix. The options chain literally tells you exactly how far the market expects the stock to move by expiration.</p>
+
+      <div class="svg-container reveal">
+        <div class="svg-header"><span>NORMAL DISTRIBUTION & STANDARD DEVIATION</span><span class="badge bg-cyan">PROBABILITY MATH</span></div>
+        <svg viewBox="0 0 800 300" style="width:100%; height:auto;">
+          <!-- Axis -->
+          <line x1="50" y1="250" x2="750" y2="250" class="axis-line"/>
+          
+          <!-- Shaded 1 SD area (approx middle 68%) -->
+          <path d="M 280,250 L 280,120 C 330,60 370,50 400,50 C 430,50 470,60 520,120 L 520,250 Z" fill="var(--blue)" opacity="0.2"/>
+          
+          <!-- Bell Curve Path -->
+          <path d="M 50,250 C 250,250 300,50 400,50 C 500,50 550,250 750,250" fill="none" stroke="var(--blue)" stroke-width="4"/>
+          
+          <!-- Guidelines -->
+          <line x1="400" y1="50" x2="400" y2="250" stroke="var(--text-main)" stroke-dasharray="4,4"/>
+          <line x1="280" y1="120" x2="280" y2="250" stroke="var(--blue)" stroke-dasharray="4,4"/>
+          <line x1="520" y1="120" x2="520" y2="250" stroke="var(--blue)" stroke-dasharray="4,4"/>
+          
+          <!-- Labels -->
+          <text x="400" y="270" fill="var(--text-main)" font-family="monospace" font-size="14" text-anchor="middle">Current Price (ATM)</text>
+          <text x="400" y="160" fill="var(--white)" font-family="Bebas Neue" font-size="36" text-anchor="middle">68.2%</text>
+          <text x="400" y="185" fill="var(--text-main)" font-family="monospace" font-size="12" text-anchor="middle">Probability of expiring inside</text>
+          
+          <text x="280" y="270" fill="var(--blue)" font-family="monospace" font-weight="bold" font-size="14" text-anchor="middle">-1 SD</text>
+          <text x="520" y="270" fill="var(--blue)" font-family="monospace" font-weight="bold" font-size="14" text-anchor="middle">+1 SD</text>
+        </svg>
+      </div>
+
+      <div class="grid-2 reveal">
+        <div class="card" style="border-left: 4px solid var(--blue);">
+          <div class="card-indicator c-blue">The Quant Shortcut</div>
+          <h3 style="color:var(--white);">The ATM Straddle Rule</h3>
+          <p>Want to know exactly how far a stock will move for earnings? Go to the At-The-Money (ATM) strike. Add the price of the Call and the price of the Put. That sum is the <strong>Expected Move (1 Standard Deviation)</strong>. The market is giving you the exact boundaries of the "cage" with a 68% probability of success.</p>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--opt-magenta);">
+          <div class="card-indicator c-magenta">Statistical Edge</div>
+          <h3 style="color:var(--white);">Trading Outside the Cone</h3>
+          <p>Options sellers (institutions) sell credit spreads <em>outside</em> the Expected Move cone (at the 16% tails). They are essentially acting as an insurance company, collecting small premiums with an 84% mathematical probability of keeping the money. This is how casinos operate.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER 6: VOLATILITY SKEW -->
+    <section class="chapter" id="ch6">
+      <div class="ch-meta">Chapter 06</div>
+      <h2 class="ch-title">THE CRASH PREMIUM<br><em>(VOLATILITY SKEW)</em></h2>
+      <p class="ch-desc">Before 1987, options models assumed markets moved equally up and down. Then Black Monday happened. The market learned that stocks take the stairs up and the elevator down. Enter: The Skew.</p>
+
+      <div class="svg-container reveal">
+        <div class="svg-header"><span>THE VOLATILITY "SMIRK" (PUT SKEW)</span><span class="badge bg-red">TAIL RISK PRICING</span></div>
+        <svg viewBox="0 0 800 300" style="width:100%; height:auto;">
+          <!-- Axes -->
+          <line x1="100" y1="250" x2="700" y2="250" class="axis-line"/>
+          <line x1="100" y1="50" x2="100" y2="250" class="axis-line"/>
+          
+          <!-- Axis Labels -->
+          <text x="400" y="280" fill="var(--text-muted)" font-family="monospace" font-size="14" text-anchor="middle">Strike Price</text>
+          <text x="60" y="150" fill="var(--text-muted)" font-family="monospace" font-size="14" transform="rotate(-90 60,150)" text-anchor="middle">Implied Volatility (IV)</text>
+          
+          <!-- Pre 1987 line (flat smile) -->
+          <path d="M 150,160 Q 400,210 650,160" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-dasharray="6,4"/>
+          <text x="660" y="165" fill="var(--text-muted)" font-family="monospace" font-size="12">Pre-1987 "Smile"</text>
+          
+          <!-- Modern Skew Line (Put Skew) -->
+          <path d="M 150,50 Q 300,200 400,220 T 650,190" fill="none" stroke="var(--red)" stroke-width="4" style="filter: drop-shadow(0 0 10px rgba(255,23,68,0.4));"/>
+          
+          <!-- ATM Point -->
+          <circle cx="400" cy="220" r="6" fill="var(--white)"/>
+          <line x1="400" y1="220" x2="400" y2="250" stroke="var(--text-muted)" stroke-dasharray="4,4"/>
+          <text x="400" y="240" fill="var(--white)" font-family="monospace" font-size="12" text-anchor="middle">ATM</text>
+          
+          <!-- Annotations -->
+          <text x="200" y="80" fill="var(--red)" font-family="monospace" font-weight="bold" font-size="14">OTM Puts (High IV)</text>
+          <text x="200" y="100" fill="var(--text-main)" font-size="12">Crash protection is expensive.</text>
+          
+          <text x="600" y="170" fill="var(--green)" font-family="monospace" font-weight="bold" font-size="14">OTM Calls (Low IV)</text>
+          <text x="600" y="190" fill="var(--text-main)" font-size="12">Upside FOMO is cheaper.</text>
+        </svg>
+      </div>
+
+      <div class="callout red reveal">
+        <strong class="c-red">Why Puts Cost More Than Calls</strong>
+        If a stock is at $100, an $80 Put (20% OTM) will almost always cost significantly more than a $120 Call (20% OTM). This is because institutional portfolios are massively long on equities. They are perfectly willing to overpay for OTM Puts to buy "fire insurance" for their portfolios. You can use this skew to your advantage by selling expensive OTM puts to collect massive premium.
+      </div>
+    </section>
+
+    <!-- CHAPTER 7: GAMMA SQUEEZE -->
+    <section class="chapter" id="ch7" style="background: rgba(101, 31, 255, 0.03);">
+      <div class="ch-meta">Chapter 07</div>
+      <h2 class="ch-title">THE MARKET MAKER<br><em>(GAMMA SQUEEZE)</em></h2>
+      <p class="ch-desc">When you buy a Call option, you don't buy it from another trader. You usually buy it from a Market Maker (MM). The MM does not want directional risk; they just want to collect the spread. Here is how they break the market.</p>
+
+      <div class="grid-2 reveal">
+        <div class="card" style="border-left: 4px solid var(--blue);">
+          <div class="card-indicator c-blue">Delta Hedging</div>
+          <h3 style="color:var(--white);">How MMs Stay Neutral</h3>
+          <p>If you buy a Call option (Delta +0.50), the MM is now short that Call (Delta -0.50). To neutralize their risk, the MM must go into the open market and **buy 50 shares of the underlying stock**. By hedging their options exposure, MMs actually drive the underlying stock price higher.</p>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--opt-magenta);">
+          <div class="card-indicator c-magenta">The Feedback Loop</div>
+          <h3 style="color:var(--white);">The Gamma Squeeze</h3>
+          <p>If a massive horde of retail traders suddenly buys thousands of out-of-the-money Calls on a stock (like GME or Tesla), the MMs are forced to buy millions of shares to hedge. As the stock price rises, the *Gamma* causes the *Delta* of those options to increase. The MMs are suddenly under-hedged and must buy **even more shares**. This creates an explosive, self-fulfilling rocket ship.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER 8: MASTER SCREENER -->
+    <section class="chapter" id="ch8">
+      <div class="ch-meta">The Grand Finale</div>
+      <h2 class="ch-title">OPTIONS PRE-FLIGHT<br><em>CHECKLIST</em></h2>
+      <p class="ch-desc">Options are weapons of financial mass destruction if used incorrectly. Do not execute a multi-leg strategy without passing this quant protocol.</p>
+
+      <div class="checklist-wrapper reveal">
+        <div class="chk-header">
+          <h3 style="font-family:'Bebas Neue',sans-serif; font-size:38px; color:var(--opt-magenta); letter-spacing:2px; text-shadow: var(--glow-magenta);">THE GREEK PROTOCOL</h3>
+        </div>
+        <div class="chk-body">
+          <div class="chk-section">
+            <div class="chk-title">01. Volatility Assessment</div>
+            <div class="chk-item">
+              <input type="checkbox" id="ochk1" class="custom-chk">
+              <label for="ochk1" class="chk-label"><div class="chk-box-ui"></div> Checked IV Rank (IVR). Is volatility historically high or low?</label>
+            </div>
+            <div class="chk-item">
+              <input type="checkbox" id="ochk2" class="custom-chk">
+              <label for="ochk2" class="chk-label"><div class="chk-box-ui"></div> Strategy matches IV: Buying premium in low IV, Selling premium in high IV.</label>
+            </div>
+            <div class="chk-item">
+              <input type="checkbox" id="ochk3" class="custom-chk">
+              <label for="ochk3" class="chk-label"><div class="chk-box-ui"></div> Verified upcoming Earnings/Dividend dates to avoid unexpected IV crush/expansion.</label>
+            </div>
+          </div>
+          
+          <div class="chk-section">
+            <div class="chk-title" style="color:var(--blue);">02. Time & Theta Dynamics</div>
+            <div class="chk-item">
+              <input type="checkbox" id="ochk4" class="custom-chk">
+              <label for="ochk4" class="chk-label"><div class="chk-box-ui"></div> Expiration (DTE) selected appropriately (e.g., 30-45 DTE for selling spreads).</label>
+            </div>
+            <div class="chk-item">
+              <input type="checkbox" id="ochk5" class="custom-chk">
+              <label for="ochk5" class="chk-label"><div class="chk-box-ui"></div> I understand how Theta decay will accelerate against/for my position this week.</label>
+            </div>
+          </div>
+
+          <div class="chk-section">
+            <div class="chk-title" style="color:var(--red);">03. Risk Definition</div>
+            <div class="chk-item">
+              <input type="checkbox" id="ochk6" class="custom-chk">
+              <label for="ochk6" class="chk-label"><div class="chk-box-ui"></div> Strategy has a strictly DEFINED max loss (e.g., via a spread, no naked short calls).</label>
+            </div>
+            <div class="chk-item">
+              <input type="checkbox" id="ochk7" class="custom-chk">
+              <label for="ochk7" class="chk-label"><div class="chk-box-ui"></div> Total capital at risk on this trade is < 2% of total portfolio value.</label>
+            </div>
+            <div class="chk-item">
+              <input type="checkbox" id="ochk8" class="custom-chk">
+              <label for="ochk8" class="chk-label"><div class="chk-box-ui"></div> I have a clear exit plan at 50% max profit or structural invalidation.</label>
+            </div>
+          </div>
+
+          <div class="chk-section">
+            <div class="chk-title" style="color:var(--green);">04. Liquidity & Execution</div>
+            <div class="chk-item">
+              <input type="checkbox" id="ochk9" class="custom-chk">
+              <label for="ochk9" class="chk-label"><div class="chk-box-ui"></div> Option chain has tight Bid/Ask spreads (High open interest & volume).</label>
+            </div>
+            <div class="chk-item">
+              <input type="checkbox" id="ochk10" class="custom-chk">
+              <label for="ochk10" class="chk-label"><div class="chk-box-ui"></div> Order placed as a LIMIT order at the mid-price (Never use Market orders for options).</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer style="padding: 80px 100px; text-align: center; border-top: 1px solid var(--border); background: var(--surface); backdrop-filter: var(--surface-blur);">
+      <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 50px; color: var(--white); letter-spacing: 3px; text-shadow: var(--glow-magenta);">QUANT<span style="color:var(--opt-magenta)">.PRO</span></h3>
+      <p style="color: var(--text-muted); font-size: 16px; max-width: 600px; margin: 20px auto;">Probabilities. Theta Decay. Volatility Arbitrage.<br>For educational purposes only. Options involve extreme risk.</p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+// Theme Toggle Logic
+const themeBtn = document.getElementById('themeToggle');
+const html = document.documentElement;
+
+const savedTheme = localStorage.getItem('options_theme');
+if (savedTheme) {
+  html.setAttribute('data-theme', savedTheme);
+} else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+  html.setAttribute('data-theme', 'light');
+}
+
+themeBtn.addEventListener('click', () => {
+  const currentTheme = html.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('options_theme', newTheme);
+});
+
+// Precision Custom Cursor
+if (window.matchMedia('(hover: hover)').matches) {
+  const cursor = document.getElementById('cursorDot');
+  const ring = document.getElementById('cursorRing');
+  let cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+  let rx = cx, ry = cy;
+
+  document.addEventListener('mousemove', e => {
+    cx = e.clientX; cy = e.clientY;
+    cursor.style.left = cx + 'px';
+    cursor.style.top = cy + 'px';
+  });
+
+  function animateRing() {
+    rx += (cx - rx) * 0.15;
+    ry += (cy - ry) * 0.15;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  document.addEventListener('mousedown', () => {
+    cursor.style.transform = 'translate(-50%, -50%) scale(2)';
+    ring.style.transform = 'translate(-50%, -50%) scale(0.4)';
+  });
+  document.addEventListener('mouseup', () => {
+    cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+    ring.style.transform = 'translate(-50%, -50%) scale(1)';
+  });
+}
+
+// Scroll Reveal
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
+reveals.forEach(el => observer.observe(el));
+
+// Scrollspy for Sidebar
+const sections = document.querySelectorAll('section');
+const navLinks = document.querySelectorAll('.nav-link');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(section => {
+    const sectionTop = section.offsetTop;
+    if (pageYOffset >= (sectionTop - 300)) {
+      current = section.getAttribute('id');
+    }
+  });
+
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href').includes(current)) {
+      link.classList.add('active');
+    }
+  });
+});
+
+// Mobile Sidebar Toggle
+const menuToggle = document.getElementById('menuToggle');
+const sidebar = document.getElementById('sidebar');
+menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+navLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    if(window.innerWidth <= 1024) sidebar.classList.remove('open');
+  });
+});
+
+// Progress Bar
+window.addEventListener('scroll', () => {
+  const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+  const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const scrolled = (winScroll / height) * 100;
+  document.getElementById('progressBar').style.width = scrolled + '%';
+});
+
+// Interactive Checklist Persistent Storage
+const checkboxes = document.querySelectorAll('.custom-chk');
+checkboxes.forEach(chk => {
+  const savedState = localStorage.getItem('options_chk_v2_' + chk.id);
+  if (savedState === 'true') chk.checked = true;
+  chk.addEventListener('change', (e) => {
+    localStorage.setItem('options_chk_v2_' + e.target.id, e.target.checked);
+  });
+});
+</script>
+</body>
+</html>
