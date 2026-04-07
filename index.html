@@ -469,6 +469,43 @@ body::before {
           <p style="font-size:14px;">Sell a Call Spread above the current price, and sell a Put Spread below it. You create a "cage". You win if the stock stays inside the cage by expiration. Perfect for high-IV environments (Earnings) where you expect volatility to crush.</p>
         </div>
 
+        <!-- Straddle / Strangle -->
+        <div class="card">
+          <div class="svg-container" style="border:none; padding:0; background:transparent; margin-bottom: 20px; box-shadow:none;">
+            <svg viewBox="0 0 360 160" style="width:100%; height:120px;">
+              <line x1="20" y1="80" x2="340" y2="80" class="axis-line"/>
+              <polygon points="20,80 100,80 20,40" class="profit-area"/>
+              <polygon points="260,80 340,80 340,40" class="profit-area"/>
+              <polygon points="100,80 180,120 260,80" class="loss-area"/>
+              <path d="M20,40 L100,80 L180,120 L260,80 L340,40" class="payoff-line payoff-magenta"/>
+              <text x="180" y="140" fill="var(--red)" font-size="10" font-family="monospace" text-anchor="middle">Max Loss (Premium Paid)</text>
+              <text x="60" y="30" fill="var(--green)" font-size="10" font-family="monospace" text-anchor="middle">Profit</text>
+              <text x="300" y="30" fill="var(--green)" font-size="10" font-family="monospace" text-anchor="middle">Profit</text>
+            </svg>
+          </div>
+          <div class="card-indicator c-pink">Volatility Expansion</div>
+          <h3 style="font-size:20px;">Long Straddle / Strangle</h3>
+          <p style="font-size:14px;">Buy a Call and a Put simultaneously. You don't care about direction; you only care about <strong>magnitude</strong>. You need an explosive move to outpace the dual premium paid. <em>Strangles</em> use OTM strikes to lower the entry cost, but require an even more violent breakout.</p>
+        </div>
+
+        <!-- Calendar Spread -->
+        <div class="card">
+          <div class="svg-container" style="border:none; padding:0; background:transparent; margin-bottom: 20px; box-shadow:none;">
+             <svg viewBox="0 0 360 160" style="width:100%; height:120px;">
+              <line x1="20" y1="100" x2="340" y2="100" class="axis-line"/>
+              <path d="M120,100 Q180,20 240,100 Z" class="profit-area"/>
+              <polygon points="20,100 120,100 120,120 20,120" class="loss-area"/>
+              <polygon points="240,100 340,100 340,120 240,120" class="loss-area"/>
+              <path d="M20,120 L100,120 Q180,20 260,120 L340,120" class="payoff-line payoff-blue"/>
+              <text x="180" y="40" fill="var(--green)" font-size="10" font-family="monospace" text-anchor="middle">Max Profit (At Strike)</text>
+              <text x="180" y="140" fill="var(--red)" font-size="10" font-family="monospace" text-anchor="middle">Defined Risk</text>
+            </svg>
+          </div>
+          <div class="card-indicator c-blue">Time Arbitrage (Theta)</div>
+          <h3 style="font-size:20px;">The Calendar Spread</h3>
+          <p style="font-size:14px;">Sell a short-term option and buy a long-term option at the same strike. You are literally trading <strong>Time Decay (Theta)</strong>. Short-term options lose value exponentially faster than long-term options. If the stock stays pinned near your strike, the front-month expires worthless for max profit.</p>
+        </div>
+
       </div>
     </section>
 
